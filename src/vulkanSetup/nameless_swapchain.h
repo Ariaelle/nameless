@@ -17,7 +17,9 @@ namespace nameless {
 		~NamelessSwapChain();
 
 		NamelessSwapChain(const NamelessSwapChain&) = delete;
-		void operator=(const NamelessSwapChain&) = delete;
+		NamelessSwapChain& operator=(const NamelessSwapChain&) = delete;
+
+		NamelessSwapChain() = default;
 
 		VkFramebuffer getFrameBuffer(int index) { return swapChainFramebuffers[index]; }
 		VkRenderPass getRenderPass() { return renderPass; }

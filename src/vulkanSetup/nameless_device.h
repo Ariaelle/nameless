@@ -31,9 +31,11 @@ namespace nameless {
 
 		//not copyable or moveable.
 		NamelessDevice(const NamelessDevice&) = delete;
-		void operator=(const NamelessDevice&) = delete;
+		NamelessDevice& operator=(const NamelessDevice&) = delete;
 		NamelessDevice(NamelessDevice &&) = delete;
 		NamelessDevice& operator=(NamelessDevice&&) = delete;
+
+		NamelessDevice() = default;
 
 		VkCommandPool getCommandPool() { return commandPool; }
 		VkDevice device() { return device_; }

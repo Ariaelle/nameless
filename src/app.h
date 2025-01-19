@@ -28,11 +28,13 @@ namespace nameless {
 		void createPipelineLayout();
 		void createPipeline();
 		void createCommandBuffers();
+		void recordCommandBuffer(int imageIndex);
 		void drawFrame();
+		void recreateSwapChain();
 
 		NamelessWindow namelessWindow{ width, height, std::string("Window")};
 		NamelessDevice namelessDevice{ namelessWindow };
-		NamelessSwapChain namelessSwapChain{ namelessDevice, namelessWindow.getExtent() };
+		std::unique_ptr<NamelessSwapChain> namelessSwapChain;
 		std::unique_ptr<NamelessPipeline> namelessPipeline;
 		VkPipelineLayout pipelineLayout;
 		std::vector<VkCommandBuffer> commandBuffers;
