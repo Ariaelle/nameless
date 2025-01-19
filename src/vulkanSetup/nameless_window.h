@@ -24,6 +24,15 @@ namespace nameless {
 
 		void createWindowSurface(VkInstance instance, VkSurfaceKHR* surface);
 
+
+		/*To support dynamic resizing of the window, we push the lambda function from app::run()
+		* which does three necessary things:
+		* 1. reset the window resized flag to false
+		* 2. recreate the swapchain with the new window size
+		* 3. draw the needed frame.
+		* 
+		* Added for dynamic resizing on windows to provide a consistently correct image without freezing.
+		*/
 		void subscribe(const std::function<void()>& callback) {
 			subscribers.push_back(callback);
 		}

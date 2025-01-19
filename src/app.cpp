@@ -4,8 +4,12 @@
 namespace nameless {
 
 	app::app() {
+
+		//See the comment in nameless_window.h
 		namelessWindow.subscribe([this]() {
 			namelessWindow.resetWindowResizedFlag(); recreateSwapChain(); drawFrame(); });
+
+
 		loadModels();
 		createPipelineLayout();
 		recreateSwapChain();
