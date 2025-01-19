@@ -1,4 +1,0 @@
-C:/Users/lycah/source/repos/nameless/build/CMakeFiles/nameless.dir
-C:/Users/lycah/source/repos/nameless/build/CMakeFiles/Shaders.dir
-C:/Users/lycah/source/repos/nameless/build/CMakeFiles/edit_cache.dir
-C:/Users/lycah/source/repos/nameless/build/CMakeFiles/rebuild_cache.dir
