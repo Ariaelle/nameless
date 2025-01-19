@@ -29,8 +29,8 @@ namespace nameless {
 	}
 	app::~app() {
 		vkDestroyPipelineLayout(namelessDevice.device(), pipelineLayout, nullptr);
-
 	}
+
 	void app::run() {
 		while (!namelessWindow.shouldClose()) {
 			glfwPollEvents();
@@ -77,6 +77,7 @@ namespace nameless {
 			throw std::runtime_error("failed to create pipeline layout");
 		}
 	}
+
 	void app::createPipeline() {
 		assert(namelessSwapChain != nullptr && "Cannot create pipeline before swapchain");
 		assert(pipelineLayout != nullptr && "Cannot create pipeline before pipeline layout");

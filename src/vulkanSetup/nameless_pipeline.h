@@ -8,6 +8,7 @@ namespace nameless {
 		PipelineConfigInfo(const PipelineConfigInfo&) = delete;
 		PipelineConfigInfo& operator=(const PipelineConfigInfo&) = delete;
 
+		//dont just leave this defaulted when making one, it won't work
 		PipelineConfigInfo() = default;
 		
 		VkPipelineViewportStateCreateInfo viewportInfo;

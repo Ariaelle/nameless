@@ -31,6 +31,7 @@ namespace nameless {
 	void NamelessModel::draw(VkCommandBuffer commandBuffer) {
 		vkCmdDraw(commandBuffer, vertexCount, 1, 0, 0);
 	}
+
 	void NamelessModel::bind(VkCommandBuffer commandBuffer) {
 		VkBuffer buffers[] = { vertexBuffer };
 		VkDeviceSize offsets[] = { 0 };
