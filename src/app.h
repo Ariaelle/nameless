@@ -5,6 +5,7 @@
 #include "vulkanSetup/nameless_device.h"
 #include "vulkanSetup/nameless_swapchain.h"
 #include "vulkanSetup/nameless_model.h"
+#include "nameless_game_object.h"
 #include <vulkan/vulkan.h>
 #include <memory>
 #include <array>
@@ -24,13 +25,15 @@ namespace nameless {
 		void run();
 
 	private:
-		void loadModels();
+		void loadGameObjects();
 		void createPipelineLayout();
 		void createPipeline();
 		void createCommandBuffers();
+		void freeCommandBuffers();
 		void recordCommandBuffer(int imageIndex);
 		void drawFrame();
 		void recreateSwapChain();
+		void renderGameObjects(VkCommandBuffer commandBuffer);
 
 		NamelessWindow namelessWindow{ width, height, std::string("Window")};
 		NamelessDevice namelessDevice{ namelessWindow };
@@ -38,6 +41,6 @@ namespace nameless {
 		std::unique_ptr<NamelessPipeline> namelessPipeline;
 		VkPipelineLayout pipelineLayout;
 		std::vector<VkCommandBuffer> commandBuffers;
-		std::unique_ptr<NamelessModel> namelessModel;
+		std::vector<NamelessGameObject> gameObjects;
 	};
 }

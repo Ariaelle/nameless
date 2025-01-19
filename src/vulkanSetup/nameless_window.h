@@ -42,6 +42,8 @@ namespace nameless {
 				subscriber();
 			}
 		}
+
+
 	private:
 		static void frameBufferResizeCallback(GLFWwindow *window, int width, int height);
 		std::vector<std::function<void()>> subscribers;

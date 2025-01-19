@@ -1,7 +1,19 @@
 #include "app.h"
 #include <stdexcept>
 
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#include <glm/glm.hpp>
+#include <glm/gtc/constants.hpp>
+
+
 namespace nameless {
+
+	struct SimplePushConstantData {
+		glm::mat2 transform{ 1.f };
+		glm::vec2 offset;
+		alignas(16) glm::vec3 color;
+	};
 
 	app::app() {
 
@@ -10,7 +22,7 @@ namespace nameless {
 			namelessWindow.resetWindowResizedFlag(); recreateSwapChain(); drawFrame(); });
 
 
-		loadModels();
+		loadGameObjects();
 		createPipelineLayout();
 		recreateSwapChain();
 		createCommandBuffers();
@@ -27,28 +39,48 @@ namespace nameless {
 		vkDeviceWaitIdle(namelessDevice.device());
 	}
 
-	void app::loadModels() {
+	void app::loadGameObjects() {
 		std::vector<NamelessModel::Vertex> vertices{
 			{{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
 			{{0.5f, 0.5f} , {0.0f, 1.0f, 0.0f}},
 			{{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
 		};
 
-		namelessModel = std::make_unique<NamelessModel>(namelessDevice, vertices);
+		auto namelessModel = std::make_shared<NamelessModel>(namelessDevice, vertices);
+
+		auto triangle = NamelessGameObject::createGameObject();
+		triangle.model = namelessModel;
+		triangle.color = { .1f, .8f, .1f };
+		triangle.transform2d.translation.x = .2f;
+		triangle.transform2d.scale = { 2.f, .5f };
+		triangle.transform2d.rotation = .25f * glm::two_pi<float>();
+
+		gameObjects.push_back(std::move(triangle));
 	}
 
 	void app::createPipelineLayout() {
+
+		VkPushConstantRange pushConstantRange{};
+		pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+		pushConstantRange.offset = 0;
+		pushConstantRange.size = sizeof(SimplePushConstantData);
+
 		VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 		pipelineLayoutInfo.setLayoutCount = 0;
 		pipelineLayoutInfo.pSetLayouts = nullptr;
 		pipelineLayoutInfo.pushConstantRangeCount = 0;
 		pipelineLayoutInfo.pPushConstantRanges = nullptr;
+		pipelineLayoutInfo.pushConstantRangeCount = 1;
+		pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
 		if (vkCreatePipelineLayout(namelessDevice.device(), &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create pipeline layout");
 		}
 	}
 	void app::createPipeline() {
+		assert(namelessSwapChain != nullptr && "Cannot create pipeline before swapchain");
+		assert(pipelineLayout != nullptr && "Cannot create pipeline before pipeline layout");
+
 		PipelineConfigInfo pipelineConfig{};
 		NamelessPipeline::defaultPipelineConfigInfo(pipelineConfig);
 		pipelineConfig.renderPass = namelessSwapChain->getRenderPass();
@@ -72,6 +104,7 @@ namespace nameless {
 	}
 
 	void app::recordCommandBuffer(int imageIndex) {
+
 		VkCommandBufferBeginInfo beginInfo{};
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 
@@ -88,7 +121,7 @@ namespace nameless {
 		renderPassInfo.renderArea.extent = namelessSwapChain->getSwapChainExtent();
 
 		std::array<VkClearValue, 2> clearValues{};
-		clearValues[0].color = { 0.1f, 0.1f, 0.1f, 1.0f };
+		clearValues[0].color = { 0.01f, 0.01f, 0.01f, 1.0f };
 		clearValues[1].depthStencil = { 1.0f, 0 };
 		renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
 		renderPassInfo.pClearValues = clearValues.data();
@@ -106,13 +139,33 @@ namespace nameless {
 		vkCmdSetViewport(commandBuffers[imageIndex], 0, 1, &viewport);
 		vkCmdSetScissor(commandBuffers[imageIndex], 0, 1, &scissor);
 
-		namelessPipeline->bind(commandBuffers[imageIndex]);
-		namelessModel->bind(commandBuffers[imageIndex]);
-		namelessModel->draw(commandBuffers[imageIndex]);
+		renderGameObjects(commandBuffers[imageIndex]);
 
 		vkCmdEndRenderPass(commandBuffers[imageIndex]);
 		if (vkEndCommandBuffer(commandBuffers[imageIndex]) != VK_SUCCESS) {
 			throw std::runtime_error("failed to record command buffer!");
+		}
+	}
+
+
+	void app::renderGameObjects(VkCommandBuffer commandBuffer) {
+		namelessPipeline->bind(commandBuffer);
+
+		for (auto& obj : gameObjects) {
+			obj.transform2d.rotation = glm::mod(obj.transform2d.rotation + 0.01f, glm::two_pi<float>());
+
+			SimplePushConstantData push{};
+			push.offset = obj.transform2d.translation;
+			push.color = obj.color;
+			push.transform = obj.transform2d.mat2();
+
+			vkCmdPushConstants(commandBuffer, pipelineLayout,
+				VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+				0,
+				sizeof(SimplePushConstantData),
+				&push);
+			obj.model->bind(commandBuffer);
+			obj.model->draw(commandBuffer);
 		}
 	}
 
@@ -123,8 +176,16 @@ namespace nameless {
 			glfwWaitEvents();
 		}
 		vkDeviceWaitIdle(namelessDevice.device());
-		namelessSwapChain = nullptr;
-		namelessSwapChain = std::make_unique<NamelessSwapChain>(namelessDevice, extent);
+		if (namelessSwapChain == nullptr) {
+			namelessSwapChain = std::make_unique<NamelessSwapChain>(namelessDevice, extent);
+		} else {
+			namelessSwapChain = std::make_unique<NamelessSwapChain>(namelessDevice, extent,
+				std::move(namelessSwapChain));
+			if (namelessSwapChain->imageCount() != commandBuffers.size()) {
+				freeCommandBuffers();
+				createCommandBuffers();
+			}
+		}
 		createPipeline();
 	}
 
@@ -150,5 +211,11 @@ namespace nameless {
 		if (result != VK_SUCCESS) {
 			throw std::runtime_error("failed to present swap chain img");
 		}
+	}
+	void app::freeCommandBuffers() {
+		vkFreeCommandBuffers(namelessDevice.device(), namelessDevice.getCommandPool(),
+			static_cast<uint32_t>(commandBuffers.size()),
+			commandBuffers.data());
+		commandBuffers.clear();
 	}
 }

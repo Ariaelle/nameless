@@ -6,7 +6,7 @@
 
 #include <string>
 #include <vector>
-
+#include <memory>
 
 namespace nameless {
 	class NamelessSwapChain {
@@ -14,6 +14,7 @@ namespace nameless {
 		static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
 		NamelessSwapChain(NamelessDevice& deviceRef, VkExtent2D extent);
+		NamelessSwapChain(NamelessDevice& deviceRef, VkExtent2D extent, std::shared_ptr<NamelessSwapChain> previous);
 		~NamelessSwapChain();
 
 		NamelessSwapChain(const NamelessSwapChain&) = delete;
@@ -39,6 +40,7 @@ namespace nameless {
 		VkResult submitCommandBuffers(const VkCommandBuffer* buffers, uint32_t* imageIndex);
 
 	private:
+		void init();
 		void createSwapChain();
 		void createImageViews();
 		void createDepthResources();
@@ -73,5 +75,7 @@ namespace nameless {
 		std::vector<VkFence> inFlightFences;
 		std::vector<VkFence> imagesInFlight;
 		size_t currentFrame = 0;
+
+		std::shared_ptr<NamelessSwapChain> oldSwapChain;
 	};
 }
