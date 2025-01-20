@@ -1,9 +1,9 @@
 #pragma once
 
+#include "nameless_renderer.h"
 #include "vulkanSetup/nameless_window.h"
 #include "vulkanSetup/nameless_pipeline.h"
 #include "vulkanSetup/nameless_device.h"
-#include "vulkanSetup/nameless_swapchain.h"
 #include "vulkanSetup/nameless_model.h"
 #include "nameless_game_object.h"
 #include <vulkan/vulkan.h>
@@ -28,19 +28,14 @@ namespace nameless {
 		void loadGameObjects();
 		void createPipelineLayout();
 		void createPipeline();
-		void createCommandBuffers();
-		void freeCommandBuffers();
-		void recordCommandBuffer(int imageIndex);
-		void drawFrame();
-		void recreateSwapChain();
 		void renderGameObjects(VkCommandBuffer commandBuffer);
 
 		NamelessWindow namelessWindow{ width, height, std::string("Window")};
 		NamelessDevice namelessDevice{ namelessWindow };
-		std::unique_ptr<NamelessSwapChain> namelessSwapChain;
+		NamelessRenderer namelessRenderer{ namelessWindow, namelessDevice };
 		std::unique_ptr<NamelessPipeline> namelessPipeline;
 		VkPipelineLayout pipelineLayout;
-		std::vector<VkCommandBuffer> commandBuffers;
 		std::vector<NamelessGameObject> gameObjects;
+		
 	};
 }

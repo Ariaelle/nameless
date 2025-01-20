@@ -16,16 +16,9 @@ namespace nameless {
 	};
 
 	app::app() {
-
-		//See the comment in nameless_window.h
-		namelessWindow.subscribe([this]() {
-			namelessWindow.resetWindowResizedFlag(); recreateSwapChain(); drawFrame(); });
-
-
 		loadGameObjects();
 		createPipelineLayout();
-		recreateSwapChain();
-		createCommandBuffers();
+		createPipeline();
 	}
 	app::~app() {
 		vkDestroyPipelineLayout(namelessDevice.device(), pipelineLayout, nullptr);
@@ -34,10 +27,16 @@ namespace nameless {
 	void app::run() {
 		while (!namelessWindow.shouldClose()) {
 			glfwPollEvents();
-			drawFrame();
+			if (auto commandBuffer = namelessRenderer.beginFrame()) {
+				namelessRenderer.beginSwapChainRenderPass(commandBuffer);
+				renderGameObjects(commandBuffer);
+				namelessRenderer.endSwapChainRenderPass(commandBuffer);
+				namelessRenderer.endFrame();
+			}
 		}
 		vkDeviceWaitIdle(namelessDevice.device());
 	}
+
 
 	void app::loadGameObjects() {
 		std::vector<NamelessModel::Vertex> vertices{
@@ -79,81 +78,22 @@ namespace nameless {
 	}
 
 	void app::createPipeline() {
-		assert(namelessSwapChain != nullptr && "Cannot create pipeline before swapchain");
 		assert(pipelineLayout != nullptr && "Cannot create pipeline before pipeline layout");
 
 		PipelineConfigInfo pipelineConfig{};
 		NamelessPipeline::defaultPipelineConfigInfo(pipelineConfig);
-		pipelineConfig.renderPass = namelessSwapChain->getRenderPass();
+		pipelineConfig.renderPass = namelessRenderer.getSwapChainRenderPass();
 		pipelineConfig.pipelineLayout = pipelineLayout;
 		namelessPipeline = std::make_unique<NamelessPipeline>(namelessDevice, "shaders/simple_shader.vert.spv",
 			"shaders/simple_shader.frag.spv", pipelineConfig);
 
 	}
 
-	void app::createCommandBuffers() {
-		commandBuffers.resize(namelessSwapChain->imageCount());
-		VkCommandBufferAllocateInfo allocInfo{};
-		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-		allocInfo.commandPool = namelessDevice.getCommandPool();
-		allocInfo.commandBufferCount = static_cast<uint32_t>(commandBuffers.size());
-
-		if (vkAllocateCommandBuffers(namelessDevice.device(), &allocInfo, commandBuffers.data()) != VK_SUCCESS) {
-			throw std::runtime_error("failed to allocate command buffers");
-		}
-	}
-
-	void app::recordCommandBuffer(int imageIndex) {
-
-		VkCommandBufferBeginInfo beginInfo{};
-		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-
-		if (vkBeginCommandBuffer(commandBuffers[imageIndex], &beginInfo) != VK_SUCCESS) {
-			throw std::runtime_error("failed to begin recording cmd buffer");
-		}
-
-		VkRenderPassBeginInfo renderPassInfo{};
-		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		renderPassInfo.renderPass = namelessSwapChain->getRenderPass();
-		renderPassInfo.framebuffer = namelessSwapChain->getFrameBuffer(imageIndex);
-
-		renderPassInfo.renderArea.offset = { 0, 0 };
-		renderPassInfo.renderArea.extent = namelessSwapChain->getSwapChainExtent();
-
-		std::array<VkClearValue, 2> clearValues{};
-		clearValues[0].color = { 0.01f, 0.01f, 0.01f, 1.0f };
-		clearValues[1].depthStencil = { 1.0f, 0 };
-		renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
-		renderPassInfo.pClearValues = clearValues.data();
-
-		vkCmdBeginRenderPass(commandBuffers[imageIndex], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-		VkViewport viewport{};
-		viewport.x = 0.0f;
-		viewport.y = 0.0f;
-		viewport.width = static_cast<float>(namelessSwapChain->getSwapChainExtent().width);
-		viewport.height = static_cast<float>(namelessSwapChain->getSwapChainExtent().height);
-		viewport.minDepth = 0.0f;
-		viewport.maxDepth = 1.0f;
-		VkRect2D scissor{ {0, 0}, namelessSwapChain->getSwapChainExtent() };
-		vkCmdSetViewport(commandBuffers[imageIndex], 0, 1, &viewport);
-		vkCmdSetScissor(commandBuffers[imageIndex], 0, 1, &scissor);
-
-		renderGameObjects(commandBuffers[imageIndex]);
-
-		vkCmdEndRenderPass(commandBuffers[imageIndex]);
-		if (vkEndCommandBuffer(commandBuffers[imageIndex]) != VK_SUCCESS) {
-			throw std::runtime_error("failed to record command buffer!");
-		}
-	}
-
-
 	void app::renderGameObjects(VkCommandBuffer commandBuffer) {
 		namelessPipeline->bind(commandBuffer);
 
 		for (auto& obj : gameObjects) {
-			obj.transform2d.rotation = glm::mod(obj.transform2d.rotation + 0.01f, glm::two_pi<float>());
+			obj.transform2d.rotation = glm::mod(obj.transform2d.rotation + 0.0001f, glm::two_pi<float>());
 
 			SimplePushConstantData push{};
 			push.offset = obj.transform2d.translation;
@@ -170,53 +110,4 @@ namespace nameless {
 		}
 	}
 
-	void app::recreateSwapChain() {
-		auto extent = namelessWindow.getExtent();
-		while (extent.width == 0 || extent.height == 0) {
-			extent = namelessWindow.getExtent();
-			glfwWaitEvents();
-		}
-		vkDeviceWaitIdle(namelessDevice.device());
-		if (namelessSwapChain == nullptr) {
-			namelessSwapChain = std::make_unique<NamelessSwapChain>(namelessDevice, extent);
-		} else {
-			namelessSwapChain = std::make_unique<NamelessSwapChain>(namelessDevice, extent,
-				std::move(namelessSwapChain));
-			if (namelessSwapChain->imageCount() != commandBuffers.size()) {
-				freeCommandBuffers();
-				createCommandBuffers();
-			}
-		}
-		createPipeline();
-	}
-
-	void app::drawFrame() {
-		uint32_t imageIndex;
-		auto result = namelessSwapChain->acquireNextImage(&imageIndex);
-
-		if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-			recreateSwapChain();
-			return;
-		}
-
-		if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
-			throw std::runtime_error("failed to acquire next swapchain img");
-		}
-		recordCommandBuffer(imageIndex);
-		result = namelessSwapChain->submitCommandBuffers(&commandBuffers[imageIndex], &imageIndex);
-		if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || namelessWindow.wasWindowResized()) {
-			namelessWindow.resetWindowResizedFlag();
-			recreateSwapChain();
-			return;
-		}
-		if (result != VK_SUCCESS) {
-			throw std::runtime_error("failed to present swap chain img");
-		}
-	}
-	void app::freeCommandBuffers() {
-		vkFreeCommandBuffers(namelessDevice.device(), namelessDevice.getCommandPool(),
-			static_cast<uint32_t>(commandBuffers.size()),
-			commandBuffers.data());
-		commandBuffers.clear();
-	}
 }

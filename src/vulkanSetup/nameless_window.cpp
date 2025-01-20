@@ -32,6 +32,5 @@ namespace nameless {
 		namelessWindow->frameBufferResized = true;
 		namelessWindow->height = height;
 		namelessWindow->width = width;
-		namelessWindow->notifySubscribers();
 	}
 }
