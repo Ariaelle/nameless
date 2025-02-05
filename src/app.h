@@ -2,9 +2,9 @@
 
 #include "nameless_renderer.h"
 #include "vulkanSetup/nameless_window.h"
-#include "vulkanSetup/nameless_pipeline.h"
 #include "vulkanSetup/nameless_device.h"
 #include "vulkanSetup/nameless_model.h"
+#include "base_render_system.h"
 #include "nameless_game_object.h"
 #include <vulkan/vulkan.h>
 #include <memory>
@@ -26,15 +26,10 @@ namespace nameless {
 
 	private:
 		void loadGameObjects();
-		void createPipelineLayout();
-		void createPipeline();
-		void renderGameObjects(VkCommandBuffer commandBuffer);
 
 		NamelessWindow namelessWindow{ width, height, std::string("Window")};
 		NamelessDevice namelessDevice{ namelessWindow };
 		NamelessRenderer namelessRenderer{ namelessWindow, namelessDevice };
-		std::unique_ptr<NamelessPipeline> namelessPipeline;
-		VkPipelineLayout pipelineLayout;
 		std::vector<NamelessGameObject> gameObjects;
 		
 	};

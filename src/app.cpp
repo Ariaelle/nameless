@@ -1,35 +1,33 @@
 #include "app.h"
 #include <stdexcept>
+#include "nameless_camera.h"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 
-
 namespace nameless {
-
-	struct SimplePushConstantData {
-		glm::mat2 transform{ 1.f };
-		glm::vec2 offset;
-		alignas(16) glm::vec3 color;
-	};
-
 	app::app() {
 		loadGameObjects();
-		createPipelineLayout();
-		createPipeline();
 	}
-	app::~app() {
-		vkDestroyPipelineLayout(namelessDevice.device(), pipelineLayout, nullptr);
-	}
-
+	app::~app() {}
+	 
 	void app::run() {
+		BaseRenderSystem baseRenderSystem(namelessDevice, namelessRenderer.getSwapChainRenderPass());
+        NamelessCamera camera{};
+
 		while (!namelessWindow.shouldClose()) {
+			
 			glfwPollEvents();
+
+            float aspect = namelessRenderer.getAspectRatio();
+            //camera.setOrthographicProjection(-aspect, aspect, -1, 1, -1, 1);
+            camera.setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 10.f);
+
 			if (auto commandBuffer = namelessRenderer.beginFrame()) {
 				namelessRenderer.beginSwapChainRenderPass(commandBuffer);
-				renderGameObjects(commandBuffer);
+				baseRenderSystem.renderGameObjects(commandBuffer, gameObjects, camera);
 				namelessRenderer.endSwapChainRenderPass(commandBuffer);
 				namelessRenderer.endFrame();
 			}
@@ -37,77 +35,78 @@ namespace nameless {
 		vkDeviceWaitIdle(namelessDevice.device());
 	}
 
+    std::unique_ptr<NamelessModel> createCubeModel(NamelessDevice& device, glm::vec3 offset) {
+        std::vector<NamelessModel::Vertex> vertices{
+
+            // left face (white)
+            {{-.5f, -.5f, -.5f}, {.9f, .9f, .9f}},
+            {{-.5f, .5f, .5f}, {.9f, .9f, .9f}},
+            {{-.5f, -.5f, .5f}, {.9f, .9f, .9f}},
+            {{-.5f, -.5f, -.5f}, {.9f, .9f, .9f}},
+            {{-.5f, .5f, -.5f}, {.9f, .9f, .9f}},
+            {{-.5f, .5f, .5f}, {.9f, .9f, .9f}},
+
+            // right face (yellow)
+            {{.5f, -.5f, -.5f}, {.8f, .8f, .1f}},
+            {{.5f, .5f, .5f}, {.8f, .8f, .1f}},
+            {{.5f, -.5f, .5f}, {.8f, .8f, .1f}},
+            {{.5f, -.5f, -.5f}, {.8f, .8f, .1f}},
+            {{.5f, .5f, -.5f}, {.8f, .8f, .1f}},
+            {{.5f, .5f, .5f}, {.8f, .8f, .1f}},
+
+            // top face (orange, y axis points down)
+            {{-.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
+            {{.5f, -.5f, .5f}, {.9f, .6f, .1f}},
+            {{-.5f, -.5f, .5f}, {.9f, .6f, .1f}},
+            {{-.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
+            {{.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
+            {{.5f, -.5f, .5f}, {.9f, .6f, .1f}},
+
+            // bottom face (red)
+            {{-.5f, .5f, -.5f}, {.8f, .1f, .1f}},
+            {{.5f, .5f, .5f}, {.8f, .1f, .1f}},
+            {{-.5f, .5f, .5f}, {.8f, .1f, .1f}},
+            {{-.5f, .5f, -.5f}, {.8f, .1f, .1f}},
+            {{.5f, .5f, -.5f}, {.8f, .1f, .1f}},
+            {{.5f, .5f, .5f}, {.8f, .1f, .1f}},
+
+            // nose face (blue)
+            {{-.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
+            {{.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
+            {{-.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
+            {{-.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
+            {{.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
+            {{.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
+
+            // tail face (green)
+            {{-.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
+            {{.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
+            {{-.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
+            {{-.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
+            {{.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
+            {{.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
+
+        };
+        for (auto& v : vertices) {
+            v.position += offset;
+        }
+        return std::make_unique<NamelessModel>(device, vertices);
+    }
 
 	void app::loadGameObjects() {
-		std::vector<NamelessModel::Vertex> vertices{
-			{{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-			{{0.5f, 0.5f} , {0.0f, 1.0f, 0.0f}},
-			{{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
-		};
+        std::shared_ptr<NamelessModel> namelessModel =  createCubeModel(namelessDevice, { .0f, .0f, .0f });
+        
+        auto cube = NamelessGameObject::createGameObject();
+        cube.model = namelessModel;
+        cube.transform.translation = { 0.f, 0.f, 5.5f };
+        cube.transform.scale = { 1.5f, 1.0f, .5f };
+        gameObjects.push_back(std::move(cube));
 
-		auto namelessModel = std::make_shared<NamelessModel>(namelessDevice, vertices);
-
-		auto triangle = NamelessGameObject::createGameObject();
-		triangle.model = namelessModel;
-		triangle.color = { .1f, .8f, .1f };
-		triangle.transform2d.translation.x = .2f;
-		triangle.transform2d.scale = { 2.f, .5f };
-		triangle.transform2d.rotation = .25f * glm::two_pi<float>();
-
-		gameObjects.push_back(std::move(triangle));
-	}
-
-	void app::createPipelineLayout() {
-
-		VkPushConstantRange pushConstantRange{};
-		pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
-		pushConstantRange.offset = 0;
-		pushConstantRange.size = sizeof(SimplePushConstantData);
-
-		VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
-		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-		pipelineLayoutInfo.setLayoutCount = 0;
-		pipelineLayoutInfo.pSetLayouts = nullptr;
-		pipelineLayoutInfo.pushConstantRangeCount = 0;
-		pipelineLayoutInfo.pPushConstantRanges = nullptr;
-		pipelineLayoutInfo.pushConstantRangeCount = 1;
-		pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
-		if (vkCreatePipelineLayout(namelessDevice.device(), &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
-			throw std::runtime_error("failed to create pipeline layout");
-		}
-	}
-
-	void app::createPipeline() {
-		assert(pipelineLayout != nullptr && "Cannot create pipeline before pipeline layout");
-
-		PipelineConfigInfo pipelineConfig{};
-		NamelessPipeline::defaultPipelineConfigInfo(pipelineConfig);
-		pipelineConfig.renderPass = namelessRenderer.getSwapChainRenderPass();
-		pipelineConfig.pipelineLayout = pipelineLayout;
-		namelessPipeline = std::make_unique<NamelessPipeline>(namelessDevice, "shaders/simple_shader.vert.spv",
-			"shaders/simple_shader.frag.spv", pipelineConfig);
+        auto cube2 = NamelessGameObject::createGameObject();
+        cube2.model = namelessModel;
+        cube2.transform.translation = { 0.5f, 0.35f, 4.5f };
+        cube2.transform.scale = { 1.0f, 1.0f, 1.0f };
+        gameObjects.push_back(std::move(cube2));
 
 	}
-
-	void app::renderGameObjects(VkCommandBuffer commandBuffer) {
-		namelessPipeline->bind(commandBuffer);
-
-		for (auto& obj : gameObjects) {
-			obj.transform2d.rotation = glm::mod(obj.transform2d.rotation + 0.0001f, glm::two_pi<float>());
-
-			SimplePushConstantData push{};
-			push.offset = obj.transform2d.translation;
-			push.color = obj.color;
-			push.transform = obj.transform2d.mat2();
-
-			vkCmdPushConstants(commandBuffer, pipelineLayout,
-				VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-				0,
-				sizeof(SimplePushConstantData),
-				&push);
-			obj.model->bind(commandBuffer);
-			obj.model->draw(commandBuffer);
-		}
-	}
-
 }

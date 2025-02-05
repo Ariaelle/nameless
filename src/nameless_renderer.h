@@ -24,9 +24,16 @@ namespace nameless {
 
 		VkRenderPass getSwapChainRenderPass() const { return namelessSwapChain->getRenderPass(); }
 
+		float getAspectRatio() const { return namelessSwapChain->extentAspectRatio(); }
+
 		VkCommandBuffer getCurrentCommandBuffer() const {
 			assert(isFrameStarted && "Cannot get command buffer when frame not in progress");
-			return commandBuffers[currentImageIndex];
+			return commandBuffers[currentFrameIndex];
+		}
+
+		int getFrameIndex() const {
+			assert(isFrameStarted && "Cannot get frame index with no frame in progress");
+			return currentFrameIndex;
 		}
 
 		VkCommandBuffer beginFrame();
@@ -47,6 +54,7 @@ namespace nameless {
 		std::vector<VkCommandBuffer> commandBuffers;
 
 		uint32_t currentImageIndex;
+		int currentFrameIndex{ 0 };
 		bool isFrameStarted{ false };
 	};
 }

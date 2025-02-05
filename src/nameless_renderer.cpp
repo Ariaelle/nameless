@@ -13,7 +13,7 @@ namespace nameless {
 	}
 
 	void NamelessRenderer::createCommandBuffers() {
-		commandBuffers.resize(namelessSwapChain->imageCount());
+		commandBuffers.resize(NamelessSwapChain::MAX_FRAMES_IN_FLIGHT);
 		VkCommandBufferAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
@@ -36,11 +36,11 @@ namespace nameless {
 			namelessSwapChain = std::make_unique<NamelessSwapChain>(namelessDevice, extent);
 		}
 		else {
-			namelessSwapChain = std::make_unique<NamelessSwapChain>(namelessDevice, extent,
-				std::move(namelessSwapChain));
-			if (namelessSwapChain->imageCount() != commandBuffers.size()) {
-				freeCommandBuffers();
-				createCommandBuffers();
+			std::shared_ptr<NamelessSwapChain> oldSwapChain = std::move(namelessSwapChain);
+			namelessSwapChain = std::make_unique<NamelessSwapChain>(namelessDevice, extent, oldSwapChain);
+
+			if (!oldSwapChain->compareSwapFormats(*namelessSwapChain.get())) {
+				throw std::runtime_error("Swap chain image format has changed");
 			}
 		}
 		//we'll come back to this and redo a thing
@@ -99,6 +99,7 @@ namespace nameless {
 		}
 
 		isFrameStarted = false;
+		currentFrameIndex = (currentFrameIndex + 1) % NamelessSwapChain::MAX_FRAMES_IN_FLIGHT;
 	}
 
 	void NamelessRenderer::beginSwapChainRenderPass(VkCommandBuffer commandBuffer) {
