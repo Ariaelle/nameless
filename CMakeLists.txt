@@ -12,7 +12,7 @@ endif()
 project ("nameless")
 
 # Add source to this project's executable.
-add_executable (nameless "src/main.cpp" "src/vulkanSetup/nameless_window.cpp" "src/app.cpp" "src/vulkanSetup/nameless_pipeline.h" "src/vulkanSetup/nameless_pipeline.cpp" "src/vulkanSetup/nameless_device.h" "src/vulkanSetup/nameless_device.cpp" "src/vulkanSetup/nameless_swapchain.h" "src/vulkanSetup/nameless_swapchain.cpp" "src/vulkanSetup/nameless_model.h" "src/vulkanSetup/nameless_model.cpp" "src/nameless_game_object.h" "src/nameless_renderer.h" "src/nameless_renderer.cpp" "src/base_render_system.h" "src/base_render_system.cpp" "src/nameless_camera.h" "src/nameless_camera.cpp")
+add_executable (nameless "src/main.cpp" "src/vulkanSetup/nameless_window.cpp" "src/app.cpp" "src/vulkanSetup/nameless_pipeline.h" "src/vulkanSetup/nameless_pipeline.cpp" "src/vulkanSetup/nameless_device.h" "src/vulkanSetup/nameless_device.cpp" "src/vulkanSetup/nameless_swapchain.h" "src/vulkanSetup/nameless_swapchain.cpp" "src/vulkanSetup/nameless_model.h" "src/vulkanSetup/nameless_model.cpp" "src/nameless_game_object.h" "src/nameless_renderer.h" "src/nameless_renderer.cpp" "src/base_render_system.h" "src/base_render_system.cpp" "src/nameless_camera.h" "src/nameless_camera.cpp" "src/movement_controller.h" "src/movement_controller.cpp")
 
 find_package(Vulkan REQUIRED)
 target_include_directories(${PROJECT_NAME} PUBLIC ${Vulkan_INCLUDE_DIRS})

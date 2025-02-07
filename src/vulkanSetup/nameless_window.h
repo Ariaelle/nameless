@@ -24,6 +24,8 @@ namespace nameless {
 
 		void createWindowSurface(VkInstance instance, VkSurfaceKHR* surface);
 
+		GLFWwindow* getGLFWWindow() const { return window; }
+
 	private:
 		static void frameBufferResizeCallback(GLFWwindow *window, int width, int height);
 		std::vector<std::function<void()>> subscribers;

@@ -6,6 +6,8 @@
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
+#include <chrono>
+#include "movement_controller.h"
 
 namespace nameless {
 	app::app() {
@@ -16,14 +18,28 @@ namespace nameless {
 	void app::run() {
 		BaseRenderSystem baseRenderSystem(namelessDevice, namelessRenderer.getSwapChainRenderPass());
         NamelessCamera camera{};
+        
+        auto viewerObject = NamelessGameObject::createGameObject();
+        MovementController cameraController{};
+
+        auto currentTime = std::chrono::high_resolution_clock::now();
 
 		while (!namelessWindow.shouldClose()) {
 			
 			glfwPollEvents();
 
+            auto newTime = std::chrono::high_resolution_clock::now();
+
+            auto frameTime = std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime).count();
+            currentTime = newTime;
+
+            cameraController.moveInPlaneXZ(namelessWindow.getGLFWWindow(), frameTime, viewerObject);
+
+            camera.setViewYXZ(viewerObject.transform.translation, viewerObject.transform.rotation);
+
             float aspect = namelessRenderer.getAspectRatio();
             //camera.setOrthographicProjection(-aspect, aspect, -1, 1, -1, 1);
-            camera.setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 10.f);
+            camera.setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 30.f);
 
 			if (auto commandBuffer = namelessRenderer.beginFrame()) {
 				namelessRenderer.beginSwapChainRenderPass(commandBuffer);
@@ -98,8 +114,8 @@ namespace nameless {
         
         auto cube = NamelessGameObject::createGameObject();
         cube.model = namelessModel;
-        cube.transform.translation = { 0.f, 0.f, 5.5f };
-        cube.transform.scale = { 1.5f, 1.0f, .5f };
+        cube.transform.translation = { 0.f, 0.f, 2.5f };
+        cube.transform.scale = { .5f, .5f, .5f };
         gameObjects.push_back(std::move(cube));
 
         auto cube2 = NamelessGameObject::createGameObject();
