@@ -1,12 +1,27 @@
 #include "nameless_model.h"
 
+#include "../nameless_utils.h"
 #include <cassert>
 #include <cstring>
+#include <unordered_map>
+
 
 //libs
 #define TINYOBJECTLOADER_IMPLEMENTATION
 #include <tiny_obj_loader.h>
-#include <iostream>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/hash.hpp>
+
+namespace std {
+	template<>
+	struct hash<nameless::NamelessModel::Vertex> {
+		size_t operator()(nameless::NamelessModel::Vertex const& vertex) const {
+			size_t seed = 0;
+			nameless::hashCombine(seed, vertex.position, vertex.color, vertex.normal, vertex.uv);
+			return seed;
+		}
+	};
+}
 
 namespace nameless {
 	NamelessModel::NamelessModel(NamelessDevice& device, const NamelessModel::Builder &builder) : namelessDevice{ device }  {
@@ -26,7 +41,6 @@ namespace nameless {
 	std::unique_ptr<NamelessModel> NamelessModel::createModelFromFile(NamelessDevice& device, const std::string& filepath) {
 		Builder builder{};
 		builder.loadModel(filepath);
-		std::cout << "Vertex count: " << builder.vertices.size() << std::endl;
 		return std::make_unique<NamelessModel>(device, builder);
 	}
 
@@ -138,6 +152,8 @@ namespace nameless {
 		vertices.clear();
 		indices.clear();
 
+		std::unordered_map<Vertex, uint32_t> uniqueVertices{};
+
 		for (const auto& shape : shapes) {
 			for (const auto& index : shape.mesh.indices) {
 				Vertex vertex{};
@@ -174,7 +190,11 @@ namespace nameless {
 					attrib.texcoords[2 * index.texcoord_index + 1] };
 				}
 
-				vertices.push_back(vertex);
+				if (uniqueVertices.count(vertex) == 0) {
+					uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
+					vertices.push_back(vertex);
+				}
+				indices.push_back(uniqueVertices[vertex]);
 			}
 		}
 	}
