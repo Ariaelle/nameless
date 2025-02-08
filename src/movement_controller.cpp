@@ -2,7 +2,8 @@
 
 namespace nameless {
 	void MovementController::moveInPlaneXZ(GLFWwindow* window, float dt, NamelessGameObject& gameObject) {
-
+		
+		//May change this
 		if (glfwRawMouseMotionSupported()) {
 			glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
 		}
@@ -31,6 +32,12 @@ namespace nameless {
 
 
 		if (cursorToggled) {
+			
+			//properly triggers input mode when initializing :)
+			if (glfwGetInputMode(window, GLFW_CURSOR) != GLFW_CURSOR_DISABLED) {
+				glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+			}
+
 			double xPos, yPos;
 			glfwGetCursorPos(window, &xPos, &yPos);
 			if (firstMouseMovement) {

@@ -26,6 +26,9 @@ target_link_libraries(${PROJECT_NAME} glm::glm)
 find_package(glfw3 CONFIG REQUIRED)
 target_link_libraries(${PROJECT_NAME} glfw)
 
+find_package(tinyobjloader CONFIG REQUIRED)
+target_link_libraries(${PROJECT_NAME} tinyobjloader::tinyobjloader)
+
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET nameless PROPERTY CXX_STANDARD 20)
 endif()
@@ -67,5 +70,14 @@ add_custom_target(
     DEPENDS ${SPIRV_BINARY_FILES}
     )
 add_dependencies(nameless Shaders)
+
+
+
+# Define source directory and destination directory
+set(MODELS_SOURCE_DIR "${CMAKE_SOURCE_DIR}/models")
+set(MODELS_DEST_DIR "${CMAKE_BINARY_DIR}/models")
+
+# Copy models directory to the build directory
+file(COPY ${MODELS_SOURCE_DIR} DESTINATION ${CMAKE_BINARY_DIR})
 
 # TODO: Add tests and install targets if needed.

@@ -1,0 +1,8 @@
+C:/Users/lycah/source/repos/nameless/vcpkg_installed/vcpkg/pkgs/tinyobjloader_x64-windows/lib/tinyobjloader.lib
+C:/Users/lycah/source/repos/nameless/vcpkg_installed/vcpkg/pkgs/tinyobjloader_x64-windows/lib/tinyobjloader/cmake/tinyobjloader-targets.cmake
+C:/Users/lycah/source/repos/nameless/vcpkg_installed/vcpkg/pkgs/tinyobjloader_x64-windows/lib/tinyobjloader/cmake/tinyobjloader-targets-release.cmake
+C:/Users/lycah/source/repos/nameless/vcpkg_installed/vcpkg/pkgs/tinyobjloader_x64-windows/include/tiny_obj_loader.h
+C:/Users/lycah/source/repos/nameless/vcpkg_installed/vcpkg/pkgs/tinyobjloader_x64-windows/share/tinyobjloader/LICENSE
+C:/Users/lycah/source/repos/nameless/vcpkg_installed/vcpkg/pkgs/tinyobjloader_x64-windows/lib/tinyobjloader/cmake/tinyobjloader-config.cmake
+C:/Users/lycah/source/repos/nameless/vcpkg_installed/vcpkg/pkgs/tinyobjloader_x64-windows/lib/tinyobjloader/cmake/tinyobjloader-config-version.cmake
+C:/Users/lycah/source/repos/nameless/vcpkg_installed/vcpkg/pkgs/tinyobjloader_x64-windows/lib/pkgconfig/tinyobjloader.pc

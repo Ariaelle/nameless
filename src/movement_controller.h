@@ -26,7 +26,7 @@ namespace nameless {
 		KeyMappings keys{};
 		float moveSpeed{ 3.f };
 		float lookSpeed{ 1.5f };
-		bool cursorToggled = false;
+		bool cursorToggled = true;
 		float mouseSensitivity{ 3.f };
 		float speedUp{ 1.5f };
 	};
