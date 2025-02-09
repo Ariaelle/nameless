@@ -14,7 +14,11 @@ namespace nameless {
 
     struct GlobalUniformBufferObject {
         alignas(16) glm::mat4 projectionView{ 1.f };
-        alignas(16) glm::vec3 lightDirection = glm::normalize(glm::vec3{ 1.f, 3.f, -1.f });
+        //alignas(16) glm::vec3 lightDirection = glm::normalize(glm::vec3{ 1.f, 3.f, -1.f });
+        
+        alignas(16) glm::vec4 ambientLightColor{ 1.f, 1.f, 1.f, 0.02f };
+        alignas(16) glm::vec3 lightPosition{ -1.f };
+        alignas(16) glm::vec4 lightColor{ 1.f, 1.f, 1.f, 1.f };
     };
 
 
@@ -98,7 +102,7 @@ namespace nameless {
 
 	void app::loadGameObjects() {
         std::shared_ptr<NamelessModel> smoothVaseModel = NamelessModel::createModelFromFile(namelessDevice, "models/smooth_vase.obj");
-        //std::shared_ptr<NamelessModel> flatVaseModel = NamelessModel::createModelFromFile(namelessDevice, "models/flat_vase.obj");
+      //  std::shared_ptr<NamelessModel> flatVaseModel = NamelessModel::createModelFromFile(namelessDevice, "models/flat_vase.obj");
         //std::shared_ptr<NamelessModel> cubeModel = NamelessModel::createModelFromFile(namelessDevice, "models/cube.obj");
        // std::shared_ptr<NamelessModel> coloredCubeModel = NamelessModel::createModelFromFile(namelessDevice, "models/colored_cube.obj");
        /* auto cube = NamelessGameObject::createGameObject();
@@ -116,15 +120,15 @@ namespace nameless {
 
         auto smoothVase = NamelessGameObject::createGameObject();
         smoothVase.model = smoothVaseModel;
-        smoothVase.transform.translation = {.0f, .5f, 2.5f };
-        smoothVase.transform.scale = { 3.f, 3.f, 3.0f };
+        smoothVase.transform.translation = { .5f, .5f, 0.f };
+        smoothVase.transform.scale = { 3.f, 1.5f, 3.f };
         gameObjects.push_back(std::move(smoothVase));
 
-       /* auto flatVase = NamelessGameObject::createGameObject();
-        flatVase.model = flatVaseModel;
-        flatVase.transform.translation = { 2.5f, 4.35f, 8.5f };
-        flatVase.transform.scale = { 1.0f, 1.0f, 1.0f };
-        gameObjects.push_back(std::move(flatVase));
-        */
+    //    auto flatVase = NamelessGameObject::createGameObject();
+    //    flatVase.model = flatVaseModel;
+    //    flatVase.transform.translation = { 2.5f, 4.35f, 8.5f };
+    //    flatVase.transform.scale = { 1.0f, 1.0f, 1.0f };
+    //    gameObjects.push_back(std::move(flatVase));
+        
 	}
 }
