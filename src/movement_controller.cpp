@@ -11,9 +11,8 @@ namespace nameless {
 		static bool cursorTogglePressed = false;
 		static double previousMouseXPos{ 0.0 };
 		static double previousMouseYPos{ 0.0 };
-		static bool firstMouseMovement = true;
 
-		//To-do: enable an option for mouse camera controls. 
+		
 		if (glfwGetKey(window, keys.cursorToggle) == GLFW_PRESS && !cursorTogglePressed) {
 			if (cursorToggled) {
 				glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
@@ -21,7 +20,6 @@ namespace nameless {
 			}
 			else {
 				glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-				firstMouseMovement = true;
 				cursorToggled = true;
 			}
 			cursorTogglePressed = true;
@@ -40,12 +38,6 @@ namespace nameless {
 
 			double xPos, yPos;
 			glfwGetCursorPos(window, &xPos, &yPos);
-			if (firstMouseMovement) {
-				previousMouseXPos = xPos;
-				previousMouseYPos = yPos;
-				firstMouseMovement = false;
-				return;
-			}
 
 			float deltaX = static_cast<float>(xPos - previousMouseXPos);
 			float deltaY = static_cast<float>(yPos - previousMouseYPos);

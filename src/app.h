@@ -9,6 +9,7 @@
 #include <vulkan/vulkan.h>
 #include <memory>
 #include <array>
+#include "vulkanSetup/nameless_descriptors.h"
 
 namespace nameless {
 	class app {
@@ -30,6 +31,8 @@ namespace nameless {
 		NamelessWindow namelessWindow{ width, height, std::string("Window")};
 		NamelessDevice namelessDevice{ namelessWindow };
 		NamelessRenderer namelessRenderer{ namelessWindow, namelessDevice };
+
+		std::unique_ptr<NamelessDescriptorPool> globalPool{};
 		std::vector<NamelessGameObject> gameObjects;
 		
 	};

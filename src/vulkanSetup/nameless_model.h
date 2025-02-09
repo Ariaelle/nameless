@@ -1,5 +1,6 @@
 #pragma once
 #include "nameless_device.h"
+#include "nameless_buffer.h"
 
 //libs
 #define GLM_FORCE_RADIANS
@@ -52,13 +53,11 @@ namespace nameless {
 		void createIndexBuffers(const std::vector<uint32_t>& indices);
 
 		NamelessDevice& namelessDevice;
-		VkBuffer vertexBuffer;
-		VkDeviceMemory vertexBufferMemory;
+		std::unique_ptr<NamelessBuffer> vertexBuffer;
 		uint32_t vertexCount;
 
 		bool hasIndexBuffer = false;
-		VkBuffer indexBuffer;
-		VkDeviceMemory indexBufferMemory;
+		std::unique_ptr<NamelessBuffer> indexBuffer;
 		uint32_t indexCount;
 	};
 }

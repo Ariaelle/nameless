@@ -5,6 +5,7 @@
 #include "vulkanSetup/nameless_model.h"
 #include "nameless_game_object.h"
 #include "nameless_camera.h"
+#include "nameless_frame_info.h"
 
 #include <vulkan/vulkan.h>
 #include <memory>
@@ -14,16 +15,16 @@ namespace nameless {
 	class BaseRenderSystem {
 
 	public:
-		BaseRenderSystem(NamelessDevice& device, VkRenderPass renderPass);
+		BaseRenderSystem(NamelessDevice& device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout);
 		~BaseRenderSystem();
 
 		BaseRenderSystem(const BaseRenderSystem&) = delete;
 		BaseRenderSystem& operator=(const BaseRenderSystem&) = delete;
 
-		void renderGameObjects(VkCommandBuffer commandBuffer, std::vector<NamelessGameObject> &gameObjects, const NamelessCamera& camera);
+		void renderGameObjects(FrameInfo& frameInfo, std::vector<NamelessGameObject> &gameObjects);
 
 	private:
-		void createPipelineLayout();
+		void createPipelineLayout(VkDescriptorSetLayout globalSetLayout);
 		void createPipeline(VkRenderPass renderPass);
 		
 		NamelessDevice &namelessDevice;
