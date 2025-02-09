@@ -46,7 +46,7 @@ namespace nameless {
         }
         
         auto globalSetLayout = NamelessDescriptorSetLayout::Builder(namelessDevice)
-            .addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT)
+            .addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_ALL_GRAPHICS)
             .build();
         
         std::vector<VkDescriptorSet> globalDescriptorSets(NamelessSwapChain::MAX_FRAMES_IN_FLIGHT);
@@ -59,6 +59,7 @@ namespace nameless {
         NamelessCamera camera{};
         
         auto viewerObject = NamelessGameObject::createGameObject();
+        viewerObject.transform.translation.z = -2.5f;
         MovementController cameraController{};
 
         auto currentTime = std::chrono::high_resolution_clock::now();
@@ -82,7 +83,7 @@ namespace nameless {
 
 			if (auto commandBuffer = namelessRenderer.beginFrame()) {
                 int frameIndex = namelessRenderer.getFrameIndex();
-                FrameInfo frameInfo{ frameIndex, frameTime, commandBuffer, camera, globalDescriptorSets[frameIndex]};
+                FrameInfo frameInfo{ frameIndex, frameTime, commandBuffer, camera, globalDescriptorSets[frameIndex], gameObjects};
 
                 //update memory
                 GlobalUniformBufferObject ubo{};
@@ -92,7 +93,7 @@ namespace nameless {
 
                 //render
 				namelessRenderer.beginSwapChainRenderPass(commandBuffer);
-				baseRenderSystem.renderGameObjects(frameInfo, gameObjects);
+				baseRenderSystem.renderGameObjects(frameInfo);
 				namelessRenderer.endSwapChainRenderPass(commandBuffer);
 				namelessRenderer.endFrame();
 			}
@@ -117,12 +118,19 @@ namespace nameless {
         coloredCube.transform.scale = { 1.0f, 1.0f, 1.0f };
         gameObjects.push_back(std::move(coloredCube));
         */
+        std::shared_ptr<NamelessModel> floorModel = NamelessModel::createModelFromFile(namelessDevice, "models/quad_model.obj");
 
         auto smoothVase = NamelessGameObject::createGameObject();
         smoothVase.model = smoothVaseModel;
         smoothVase.transform.translation = { .5f, .5f, 0.f };
         smoothVase.transform.scale = { 3.f, 1.5f, 3.f };
-        gameObjects.push_back(std::move(smoothVase));
+        gameObjects.emplace(smoothVase.getId(), std::move(smoothVase));
+
+        auto floor = NamelessGameObject::createGameObject();
+        floor.model = floorModel;
+        floor.transform.translation = { 0.f, 0.5f, 0.f };
+        floor.transform.scale = { 3.f, 1.5, 3.f };
+        gameObjects.emplace(floor.getId(), std::move(floor));
 
     //    auto flatVase = NamelessGameObject::createGameObject();
     //    flatVase.model = flatVaseModel;

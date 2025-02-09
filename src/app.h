@@ -33,7 +33,7 @@ namespace nameless {
 		NamelessRenderer namelessRenderer{ namelessWindow, namelessDevice };
 
 		std::unique_ptr<NamelessDescriptorPool> globalPool{};
-		std::vector<NamelessGameObject> gameObjects;
+		NamelessGameObject::Map gameObjects;
 		
 	};
 }

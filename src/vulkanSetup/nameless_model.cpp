@@ -6,6 +6,7 @@
 #include <cstring>
 #include <unordered_map>
 #include <stdexcept>
+#include <iostream>
 
 //libs
 #define TINYOBJECTLOADER_IMPLEMENTATION
@@ -126,6 +127,7 @@ namespace nameless {
 		std::string warn, err;
 
 		if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, filepath.c_str())) {
+			std::cout << warn + err << std::endl;
 			throw std::runtime_error(warn + err);
 		}
 

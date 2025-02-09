@@ -2,7 +2,7 @@
 
 #include "vulkanSetup\nameless_model.h"
 #include <memory>
-
+#include <unordered_map>
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace nameless {
@@ -23,6 +23,7 @@ namespace nameless {
 
 	public:
 		using id_t = unsigned int;
+		using Map = std::unordered_map<id_t, NamelessGameObject>;
 
 		static NamelessGameObject createGameObject() {
 			static id_t currentId = 0;

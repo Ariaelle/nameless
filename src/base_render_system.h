@@ -21,7 +21,7 @@ namespace nameless {
 		BaseRenderSystem(const BaseRenderSystem&) = delete;
 		BaseRenderSystem& operator=(const BaseRenderSystem&) = delete;
 
-		void renderGameObjects(FrameInfo& frameInfo, std::vector<NamelessGameObject> &gameObjects);
+		void renderGameObjects(FrameInfo& frameInfo);
 
 	private:
 		void createPipelineLayout(VkDescriptorSetLayout globalSetLayout);
