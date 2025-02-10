@@ -11,6 +11,9 @@ namespace nameless {
 		//dont just leave this defaulted when making one, it won't work
 		PipelineConfigInfo() = default;
 		
+
+		std::vector<VkVertexInputBindingDescription> bindingDescriptions{};
+		std::vector<VkVertexInputAttributeDescription> attributeDescriptions{};
 		VkPipelineViewportStateCreateInfo viewportInfo;
 		VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo;
 		VkPipelineRasterizationStateCreateInfo rasterizationInfo;

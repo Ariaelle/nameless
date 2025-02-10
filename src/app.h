@@ -4,7 +4,8 @@
 #include "vulkanSetup/nameless_window.h"
 #include "vulkanSetup/nameless_device.h"
 #include "vulkanSetup/nameless_model.h"
-#include "base_render_system.h"
+#include "systems/base_render_system.h"
+#include "systems/point_light_system.h"
 #include "nameless_game_object.h"
 #include <vulkan/vulkan.h>
 #include <memory>

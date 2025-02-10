@@ -9,18 +9,9 @@
 #include <chrono>
 #include "movement_controller.h"
 #include "vulkanSetup/nameless_buffer.h"
+#include <iostream>
 
 namespace nameless {
-
-    struct GlobalUniformBufferObject {
-        alignas(16) glm::mat4 projectionView{ 1.f };
-        //alignas(16) glm::vec3 lightDirection = glm::normalize(glm::vec3{ 1.f, 3.f, -1.f });
-        
-        alignas(16) glm::vec4 ambientLightColor{ 1.f, 1.f, 1.f, 0.02f };
-        alignas(16) glm::vec3 lightPosition{ -1.f };
-        alignas(16) glm::vec4 lightColor{ 1.f, 1.f, 1.f, 1.f };
-    };
-
 
 	app::app() {
         globalPool = NamelessDescriptorPool::Builder(namelessDevice)
@@ -56,6 +47,7 @@ namespace nameless {
         }
 
 		BaseRenderSystem baseRenderSystem(namelessDevice, namelessRenderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout());
+        PointLightSystem pointLightSystem(namelessDevice, namelessRenderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout());
         NamelessCamera camera{};
         
         auto viewerObject = NamelessGameObject::createGameObject();
@@ -87,13 +79,16 @@ namespace nameless {
 
                 //update memory
                 GlobalUniformBufferObject ubo{};
-                ubo.projectionView = camera.getProjection() * camera.getView();
+                ubo.projectionMatrix= camera.getProjection();
+                ubo.viewMatrix = camera.getView();
+                pointLightSystem.update(frameInfo, ubo);
                 uniformBuffers[frameIndex]->writeToBuffer(&ubo);
                 uniformBuffers[frameIndex]->flush();
 
                 //render
 				namelessRenderer.beginSwapChainRenderPass(commandBuffer);
 				baseRenderSystem.renderGameObjects(frameInfo);
+                pointLightSystem.render(frameInfo);
 				namelessRenderer.endSwapChainRenderPass(commandBuffer);
 				namelessRenderer.endFrame();
 			}
@@ -103,21 +98,6 @@ namespace nameless {
 
 	void app::loadGameObjects() {
         std::shared_ptr<NamelessModel> smoothVaseModel = NamelessModel::createModelFromFile(namelessDevice, "models/smooth_vase.obj");
-      //  std::shared_ptr<NamelessModel> flatVaseModel = NamelessModel::createModelFromFile(namelessDevice, "models/flat_vase.obj");
-        //std::shared_ptr<NamelessModel> cubeModel = NamelessModel::createModelFromFile(namelessDevice, "models/cube.obj");
-       // std::shared_ptr<NamelessModel> coloredCubeModel = NamelessModel::createModelFromFile(namelessDevice, "models/colored_cube.obj");
-       /* auto cube = NamelessGameObject::createGameObject();
-        cube.model = cubeModel;
-        cube.transform.translation = { 0.f, 0.f, 2.5f };
-        cube.transform.scale = { .5f, .5f, .5f };
-        gameObjects.push_back(std::move(cube));
-        */
-       /* auto coloredCube = NamelessGameObject::createGameObject();
-        coloredCube.model = coloredCubeModel;
-        coloredCube.transform.translation = { 2.75f, 1.35f, 4.5f };
-        coloredCube.transform.scale = { 1.0f, 1.0f, 1.0f };
-        gameObjects.push_back(std::move(coloredCube));
-        */
         std::shared_ptr<NamelessModel> floorModel = NamelessModel::createModelFromFile(namelessDevice, "models/quad_model.obj");
 
         auto smoothVase = NamelessGameObject::createGameObject();
@@ -132,11 +112,23 @@ namespace nameless {
         floor.transform.scale = { 3.f, 1.5, 3.f };
         gameObjects.emplace(floor.getId(), std::move(floor));
 
-    //    auto flatVase = NamelessGameObject::createGameObject();
-    //    flatVase.model = flatVaseModel;
-    //    flatVase.transform.translation = { 2.5f, 4.35f, 8.5f };
-    //    flatVase.transform.scale = { 1.0f, 1.0f, 1.0f };
-    //    gameObjects.push_back(std::move(flatVase));
+        
+
+        std::vector<glm::vec3> lightColors{
+            {1.f, .1f, .1f},
+            {.1f, .1f, 1.f},
+            {.1f, 1.f, .1f},
+            {1.f, 1.f, .1f},
+            {.1f, 1.f, 1.f},
+            {1.f, 1.f, 1.f}
+        };
+        for (int i = 0; i < lightColors.size(); i++) {
+            auto pointLight = NamelessGameObject::makePointLight(0.2f);
+            pointLight.color = lightColors[i];
+            auto rotateLight = glm::rotate(glm::mat4(1.f), (i * glm::two_pi<float>() / lightColors.size()), { 0.f, -1.f, 0.f });
+            pointLight.transform.translation = glm::vec3(rotateLight * glm::vec4(-1.f, -2.f, -1.f, 1.f));
+            gameObjects.emplace(pointLight.getId(), std::move(pointLight));
+        }
         
 	}
 }

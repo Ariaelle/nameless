@@ -18,6 +18,11 @@ namespace nameless {
 		glm::mat4 mat4();
 		glm::mat3 normalMatrix();
 	};
+
+	struct PointLightComponent {
+		float lightIntensity = 1.0f;
+	};
+
 	//TODO: Replace with Entity Component System
 	class NamelessGameObject {
 
@@ -37,10 +42,14 @@ namespace nameless {
 
 		const id_t getId() { return id; }
 
-		std::shared_ptr<NamelessModel> model{};
+		static NamelessGameObject makePointLight(float intensity = 10.f, float radius = 0.1f, glm::vec3 color = glm::vec3(1.f));
+
 		glm::vec3 color{};
 		TransformComponent transform{};
 
+		//Optional
+		std::shared_ptr<NamelessModel> model{};
+		std::unique_ptr<PointLightComponent> pointLight = nullptr;
 
 	private:
 		NamelessGameObject(id_t objId) : id{ objId } {}

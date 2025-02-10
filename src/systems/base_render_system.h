@@ -1,11 +1,11 @@
 #pragma once
 
-#include "vulkanSetup/nameless_pipeline.h"
-#include "vulkanSetup/nameless_device.h"
-#include "vulkanSetup/nameless_model.h"
-#include "nameless_game_object.h"
-#include "nameless_camera.h"
-#include "nameless_frame_info.h"
+#include "../vulkanSetup/nameless_pipeline.h"
+#include "../vulkanSetup/nameless_device.h"
+#include "../vulkanSetup/nameless_model.h"
+#include "../nameless_game_object.h"
+#include "../nameless_camera.h"
+#include "../nameless_frame_info.h"
 
 #include <vulkan/vulkan.h>
 #include <memory>

@@ -106,6 +106,8 @@ namespace nameless {
 		configInfo.dynamicStateInfo.dynamicStateCount = static_cast<uint32_t>(configInfo.dynamicStateEnables.size());
 		configInfo.dynamicStateInfo.flags = 0;
 
+		configInfo.bindingDescriptions = NamelessModel::Vertex::getBindingDescriptions();
+		configInfo.attributeDescriptions = NamelessModel::Vertex::getAttributeDescriptions();
 	}
 
 	void NamelessPipeline::createGraphicsPipeline(
@@ -136,8 +138,8 @@ namespace nameless {
 		shaderStages[1].pNext = nullptr;
 		shaderStages[1].pSpecializationInfo = nullptr;
 
-		auto bindingDescriptions = NamelessModel::Vertex::getBindingDescriptions();
-		auto attributeDescriptions = NamelessModel::Vertex::getAttributeDescriptions();
+		auto& bindingDescriptions = configInfo.bindingDescriptions;
+		auto& attributeDescriptions = configInfo.attributeDescriptions;
 
 		VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
 		vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
