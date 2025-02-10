@@ -81,14 +81,18 @@ namespace nameless {
                 GlobalUniformBufferObject ubo{};
                 ubo.projectionMatrix= camera.getProjection();
                 ubo.viewMatrix = camera.getView();
+                ubo.inverseView = camera.getInverseView();
                 pointLightSystem.update(frameInfo, ubo);
                 uniformBuffers[frameIndex]->writeToBuffer(&ubo);
                 uniformBuffers[frameIndex]->flush();
 
                 //render
 				namelessRenderer.beginSwapChainRenderPass(commandBuffer);
+
+                //order matters for these two render calls.
 				baseRenderSystem.renderGameObjects(frameInfo);
                 pointLightSystem.render(frameInfo);
+
 				namelessRenderer.endSwapChainRenderPass(commandBuffer);
 				namelessRenderer.endFrame();
 			}

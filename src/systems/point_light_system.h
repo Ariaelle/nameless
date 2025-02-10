@@ -10,6 +10,7 @@
 #include <vulkan/vulkan.h>
 #include <memory>
 #include <array>
+#include <map>
 
 namespace nameless {
 	class PointLightSystem {

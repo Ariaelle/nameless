@@ -50,6 +50,7 @@ namespace nameless {
 
 		PipelineConfigInfo pipelineConfig{};
 		NamelessPipeline::defaultPipelineConfigInfo(pipelineConfig);
+		NamelessPipeline::enableAlphaBlending(pipelineConfig);
 		pipelineConfig.attributeDescriptions.clear();
 		pipelineConfig.bindingDescriptions.clear();
 		pipelineConfig.renderPass = renderPass;
@@ -85,13 +86,26 @@ namespace nameless {
 		globalUbo.numLights = lightIndex;
 	}
 	void PointLightSystem::render(FrameInfo& frameInfo) {
+		//sort lights by depth
+		std::map<float, NamelessGameObject::id_t> sorted;
+		for (auto& kv : frameInfo.gameObjects) {
+			auto& obj = kv.second;
+			if (obj.pointLight == nullptr) continue;
+
+			//DISTANCE
+			auto offset = frameInfo.camera.getPosition() - obj.transform.translation;
+			float disSquared = glm::dot(offset, offset);
+			sorted[disSquared] = obj.getId();
+		}
+
+
 		namelessPipeline->bind(frameInfo.commandBuffer);
 
 		vkCmdBindDescriptorSets(frameInfo.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &frameInfo.globalDescriptorSet, 0, nullptr);
 
-		for (auto& kv : frameInfo.gameObjects) {
-			auto& obj = kv.second;
-			if (obj.pointLight == nullptr) continue;
+		for (auto it = sorted.rbegin(); it != sorted.rend(); ++it) {
+			//use obj id to index into unsorted
+			auto& obj = frameInfo.gameObjects.at(it->second);
 			PointLightPushConstants push{};
 			push.position = glm::vec4(obj.transform.translation, 1.f);
 			push.color = glm::vec4(obj.color, obj.pointLight->lightIntensity);

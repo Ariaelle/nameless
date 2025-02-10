@@ -25,7 +25,7 @@ namespace nameless {
 		alignas(16) glm::mat4 projectionMatrix{ 1.f };
 		alignas(16) glm::mat4 viewMatrix{ 1.f };
 		//alignas(16) glm::vec3 lightDirection = glm::normalize(glm::vec3{ 1.f, 3.f, -1.f });
-
+		glm::mat4 inverseView{ 1.f };
 		alignas(16) glm::vec4 ambientLightColor{ 1.f, 1.f, 1.f, 0.02f };
 		PointLight pointLights[MAX_LIGHTS];
 		int numLights;
