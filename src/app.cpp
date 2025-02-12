@@ -1,7 +1,6 @@
 #include "app.h"
 #include <stdexcept>
 #include "nameless_camera.h"
-
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
@@ -10,6 +9,10 @@
 #include "movement_controller.h"
 #include "vulkanSetup/nameless_buffer.h"
 #include <iostream>
+#include "vulkanSetup/nameless_texture.h"
+
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
 
 namespace nameless {
 
@@ -49,6 +52,9 @@ namespace nameless {
 		BaseRenderSystem baseRenderSystem(namelessDevice, namelessRenderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout());
         PointLightSystem pointLightSystem(namelessDevice, namelessRenderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout());
         NamelessCamera camera{};
+        NamelessTexture texTest = NamelessTexture(namelessDevice, namelessRenderer.getSwapChainImageFormat());
+        texTest.createTextureImage("textures/testTexture.jpg");
+        texTest.createTextureImageView();
         
         auto viewerObject = NamelessGameObject::createGameObject();
         viewerObject.transform.translation.z = -2.5f;
@@ -86,9 +92,9 @@ namespace nameless {
                 uniformBuffers[frameIndex]->writeToBuffer(&ubo);
                 uniformBuffers[frameIndex]->flush();
 
-                //render
-				namelessRenderer.beginSwapChainRenderPass(commandBuffer);
 
+                //render
+                namelessRenderer.beginSwapChainRenderPass(commandBuffer);
                 //order matters for these two render calls.
 				baseRenderSystem.renderGameObjects(frameInfo);
                 pointLightSystem.render(frameInfo);

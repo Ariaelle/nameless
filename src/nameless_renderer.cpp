@@ -43,7 +43,6 @@ namespace nameless {
 				throw std::runtime_error("Swap chain image format has changed");
 			}
 		}
-		//we'll come back to this and redo a thing
 	}
 
 

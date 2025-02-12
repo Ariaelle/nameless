@@ -12,7 +12,7 @@ endif()
 project ("nameless")
 
 # Add source to this project's executable.
-add_executable (nameless "src/main.cpp" "src/vulkanSetup/nameless_window.cpp" "src/app.cpp" "src/vulkanSetup/nameless_pipeline.h" "src/vulkanSetup/nameless_pipeline.cpp" "src/vulkanSetup/nameless_device.h" "src/vulkanSetup/nameless_device.cpp" "src/vulkanSetup/nameless_swapchain.h" "src/vulkanSetup/nameless_swapchain.cpp" "src/vulkanSetup/nameless_model.h" "src/vulkanSetup/nameless_model.cpp" "src/nameless_game_object.h" "src/nameless_renderer.h" "src/nameless_renderer.cpp" "src/systems/base_render_system.h" "src/systems/base_render_system.cpp" "src/nameless_camera.h" "src/nameless_camera.cpp" "src/movement_controller.h" "src/movement_controller.cpp" "src/nameless_utils.h" "src/nameless_game_object.cpp" "src/vulkanSetup/nameless_buffer.h" "src/vulkanSetup/nameless_buffer.cpp" "src/nameless_frame_info.h" "src/vulkanSetup/nameless_descriptors.h" "src/vulkanSetup/nameless_descriptors.cpp" "src/systems/point_light_system.cpp" "src/systems/point_light_system.h")
+add_executable (nameless "src/main.cpp" "src/vulkanSetup/nameless_window.cpp" "src/app.cpp" "src/vulkanSetup/nameless_pipeline.h" "src/vulkanSetup/nameless_pipeline.cpp" "src/vulkanSetup/nameless_device.h" "src/vulkanSetup/nameless_device.cpp" "src/vulkanSetup/nameless_swapchain.h" "src/vulkanSetup/nameless_swapchain.cpp" "src/vulkanSetup/nameless_model.h" "src/vulkanSetup/nameless_model.cpp" "src/nameless_game_object.h" "src/nameless_renderer.h" "src/nameless_renderer.cpp" "src/systems/base_render_system.h" "src/systems/base_render_system.cpp" "src/nameless_camera.h" "src/nameless_camera.cpp" "src/movement_controller.h" "src/movement_controller.cpp" "src/nameless_utils.h" "src/nameless_game_object.cpp" "src/vulkanSetup/nameless_buffer.h" "src/vulkanSetup/nameless_buffer.cpp" "src/nameless_frame_info.h" "src/vulkanSetup/nameless_descriptors.h" "src/vulkanSetup/nameless_descriptors.cpp" "src/systems/point_light_system.cpp" "src/systems/point_light_system.h"   "src/vulkanSetup/nameless_texture.h" "src/vulkanSetup/nameless_texture.cpp")
 
 find_package(Vulkan REQUIRED)
 target_include_directories(${PROJECT_NAME} PUBLIC ${Vulkan_INCLUDE_DIRS})
@@ -28,6 +28,9 @@ target_link_libraries(${PROJECT_NAME} glfw)
 
 find_package(tinyobjloader CONFIG REQUIRED)
 target_link_libraries(${PROJECT_NAME} tinyobjloader::tinyobjloader)
+
+
+include_directories(${CMAKE_SOURCE_DIR}/vcpkg/pkgs/stb_x64-windows)
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET nameless PROPERTY CXX_STANDARD 20)
@@ -79,5 +82,11 @@ set(MODELS_DEST_DIR "${CMAKE_BINARY_DIR}/models")
 
 # Copy models directory to the build directory
 file(COPY ${MODELS_SOURCE_DIR} DESTINATION ${CMAKE_BINARY_DIR})
+
+#Copy textures directory to build
+set(TEXTURES_SOURCE_DIR "${CMAKE_SOURCE_DIR}/src/textures")
+set(TEXTURES_DEST_DIR "${CMAKE_BINARY_DIR}/src/textures")
+
+file(COPY ${TEXTURES_SOURCE_DIR} DESTINATION ${CMAKE_BINARY_DIR})
 
 # TODO: Add tests and install targets if needed.

@@ -36,6 +36,10 @@ namespace nameless {
 			return currentFrameIndex;
 		}
 
+		VkFormat getSwapChainImageFormat() {
+			return namelessSwapChain->getSwapChainImageFormat();
+		}
+
 		VkCommandBuffer beginFrame();
 		void endFrame();
 
